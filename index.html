@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Stress Test with Tor</title>
+</head>
+<body>
+<h1>Website Stress Test with Tor</h1>
+<label for="urlInput">Enter website URL(s) separated by commas:</label><br>
+<input type="text" id="urlInput" placeholder="e.g., http://example.com,https://example.org"><br>
+<label for="numRequestsInput">Number of requests per URL:</label><br>
+<input type="number" id="numRequestsInput" value="10"><br>
+<button onclick="startTest()">Start Test</button><br>
+<p id="statusText"></p>
+
+<script>
+function startTest() {
+    var urls = document.getElementById("urlInput").value.split(",");
+    var numRequests = parseInt(document.getElementById("numRequestsInput").value);
+
+    setStatusText("Sending " + numRequests + " requests to each URL...");
+
+    urls.forEach(function(url) {
+        for (var i = 0; i < numRequests; i++) {
+            fetchViaTor(url)
+                .then(response => {
+                    if (response.ok) {
+                        setStatusText("Request to " + url + " successful (status code: " + response.status + ")");
+                    } else {
+                        setStatusText("Request to " + url + " failed (status code: " + response.status + ")");
+                    }
+                })
+                .catch(error => {
+                    setStatusText("Request error for " + url + ": " + error.message);
+                });
+        }
+    });
+
+    setStatusText("Stress test completed.");
+}
+
+function setStatusText(text) {
+    document.getElementById("statusText").innerText = text;
+}
+
+async function fetchViaTor(url) {
+    const torProxyUrl = 'socks5://127.0.0.1:9050'; // Tor proxy server address
+
+    const response = await fetch(url, {
+        agent: new SocksProxyAgent(torProxyUrl)
+    });
+
+    return response;
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socks/2.0.0/socks.min.js"></script>
+</body>
+</html>
